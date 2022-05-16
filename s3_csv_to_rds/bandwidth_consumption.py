@@ -77,7 +77,7 @@ def lambda_handler(event, context):
         with conn.cursor() as cur:
             try:
                 cur.execute(
-                    "INSERT INTO company_bandwidth (user_id, project_alphaid, company, guest_user, user_role_name, state_id, created_date, last_file_name, bandwidth) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    "INSERT INTO <table-name> (user_id, project_alphaid, company, guest_user, user_role_name, state_id, created_date, last_file_name, bandwidth) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     (user_id, project_alphaid, company_id, guest_user_id, user_role_name, state_id, date, s3_file_name, bytes_sent))
                 conn.commit()
 
