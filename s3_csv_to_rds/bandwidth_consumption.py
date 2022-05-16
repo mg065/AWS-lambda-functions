@@ -26,8 +26,9 @@ def read_data_from_s3(event):
     df = pd.read_csv(s3path)
     if len(df):
         print(len(df))
-        total_bytes_rows = df.groupby(['User_id', 'Project_id', 'Company_id', 'Date'])[
-            ['Bytes_Sent']].sum().reset_index()
+        total_bytes_rows = df.groupby(
+            ['User_id', 'Project_id', 'Company_id', 'Guest_User', 'User_Role', 'State_id', 'Date'])[
+                ['Bytes_Sent']].sum().reset_index()
 
         print(len(total_bytes_rows))
         return total_bytes_rows, object_name
@@ -37,11 +38,11 @@ def read_data_from_s3(event):
 
 
 def lambda_handler(event, context):
-    rds_endpoint = '<connection-link>'
+    rds_endpoint = '<db-connection-link>'
     username = '<db-username>'
-    password = 'db-password'  # RDS  PostgreSQL password
-    db_name = 'db-name'  # RDS PostgreSQL DB name
-    port = '5432' # its by default
+    password = 'db-password'  # RDS  PostgresSQL password
+    db_name = 'db-name'  # RDS PostgresSQL DB name
+    port = '5432'  # it's by default
     conn = None
     try:
         print('trying to connect with the database...')
@@ -55,7 +56,7 @@ def lambda_handler(event, context):
         print('connection built successfully!')
 
     except (Exception, Error) as error:
-        print("Error while connecting to PostgreSQL", error)
+        print("Error while connecting to PostgresSQL", error)
 
     # getting csv file
     total_bandwidth_rows, s3_file_name = read_data_from_s3(event)
@@ -63,24 +64,25 @@ def lambda_handler(event, context):
     for index, row in total_bandwidth_rows.iterrows():
         user_id = int(row[0])
         project_alphaid = row[1]
-        company = int(row[2])
-        date = row[3]
-        if row[4] is None:
+        company_id = int(row[2])
+        guest_user_id = int(row[3])
+        user_role_name = row[4]
+        state_id = int(row[5])
+        date = row[6]
+        if row[7] is None:
             bytes_sent = 0
         else:
-            bytes_sent = float(row[4])
-
-        print(bytes_sent)
+            bytes_sent = float(row[7])
 
         with conn.cursor() as cur:
             try:
                 cur.execute(
-                    "INSERT INTO <table-name> (user_id, project_alphaid, company, created_date, last_file_name, bandwidth) VALUES (%s, %s, %s, %s, %s, %s)",
-                    (user_id, project_alphaid, company, date, s3_file_name, bytes_sent))
+                    "INSERT INTO company_bandwidth (user_id, project_alphaid, company, guest_user, user_role_name, state_id, created_date, last_file_name, bandwidth) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (user_id, project_alphaid, company_id, guest_user_id, user_role_name, state_id, date, s3_file_name, bytes_sent))
                 conn.commit()
 
             except Exception as e:
                 print(e)
                 continue
 
-    print('Database table updated')
+    print('Testing/Staging/local  Database table updated')
