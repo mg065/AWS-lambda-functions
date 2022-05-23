@@ -53,15 +53,22 @@ def lambda_handler(event, context):
                                 port=port,
                                 database=db_name)
 
-        print('connection built successfully!')
+                print(f'Connection built successfully with database: {username}!')
 
     except (Exception, Error) as error:
         print("Error while connecting to PostgresSQL", error)
 
     # getting csv file
     total_bandwidth_rows, s3_file_name = read_data_from_s3(event)
-
+    total_bytes_sent = 0
     for index, row in total_bandwidth_rows.iterrows():
+
+        if row[-1] is None or row[-1] <= 0:
+            continue
+        else:
+            bytes_sent = float(row[-1])
+            total_bytes_sent += float(row[-1])
+            
         user_id = int(row[0])
         project_alphaid = row[1]
         company_id = int(row[2])
@@ -69,20 +76,17 @@ def lambda_handler(event, context):
         user_role_name = row[4]
         state_id = int(row[5])
         date = row[6]
-        if row[7] is None:
-            bytes_sent = 0
-        else:
-            bytes_sent = float(row[7])
 
         with conn.cursor() as cur:
             try:
                 cur.execute(
-                    "INSERT INTO <table-name> (user_id, project_alphaid, company, guest_user, user_role_name, state_id, created_date, last_file_name, bandwidth) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    "INSERT INTO <table_name> (user_id, project_alphaid, company, guest_user, user_role_name, state_id, created_date, last_file_name, bandwidth) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
                     (user_id, project_alphaid, company_id, guest_user_id, user_role_name, state_id, date, s3_file_name, bytes_sent))
                 conn.commit()
 
             except Exception as e:
                 print(e)
                 continue
-
-    print('Testing/Staging/local  Database table updated')
+            
+    print(f'Total Bytes sent today: {total_bytes_sent}')
+    print('Testing/Staging/Local  Database table <table_name> updated')
