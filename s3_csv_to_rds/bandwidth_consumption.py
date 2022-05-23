@@ -25,12 +25,12 @@ def read_data_from_s3(event):
 
     df = pd.read_csv(s3path)
     if len(df):
-        print(len(df))
+        
         total_bytes_rows = df.groupby(
-            ['User_id', 'Project_id', 'Company_id', 'Guest_User', 'User_Role', 'State_id', 'Date'])[
-                ['Bytes_Sent']].sum().reset_index()
-
-        print(len(total_bytes_rows))
+            ['User_id', 'Project_id', 'Company_id', 'Guest_User', 'User_Role', 'State_id', 'Date']
+            )['Bytes_Sent'].sum().reset_index()
+            
+        print(f'Dataframe length is: {total_bytes_rows}')
         return total_bytes_rows, object_name
 
     else:
