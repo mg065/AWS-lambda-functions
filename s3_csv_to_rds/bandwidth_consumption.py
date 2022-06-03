@@ -17,11 +17,11 @@ def read_data_from_s3(event):
     region = '<region-link>'
     object_key = '/' + object_name
     s3path = region + bucket_name + object_key
-    print(s3path)
+    # print(s3path)
 
     object_acl = s3_conn.ObjectAcl(bucket_name, object_name)
     response = object_acl.put(ACL='public-read')
-    print(response)
+    # print(response)
 
     df = pd.read_csv(s3path)
     if len(df):
@@ -45,7 +45,7 @@ def lambda_handler(event, context):
     port = '5432'  # it's by default
     conn = None
     try:
-        print('trying to connect with the database...')
+        # print('trying to connect with the database...')
 
         conn = psycopg2.connect(host=rds_endpoint,
                                 user=username,
@@ -53,7 +53,7 @@ def lambda_handler(event, context):
                                 port=port,
                                 database=db_name)
 
-                print(f'Connection built successfully with database: {username}!')
+        print(f'Connection built successfully with database: {username}!')
 
     except (Exception, Error) as error:
         print("Error while connecting to PostgresSQL", error)
@@ -90,3 +90,4 @@ def lambda_handler(event, context):
             
     print(f'Total Bytes sent today: {total_bytes_sent}')
     print('Testing/Staging/Local  Database table <table_name> updated')
+
